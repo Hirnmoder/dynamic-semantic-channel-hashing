@@ -1,0 +1,79 @@
+{
+    "name": "Python 3 w/ PyTorch",
+    "build": {
+        "dockerfile": "../env/Dockerfile",
+        "context": "../env",
+        "args": {
+            "PYTHONUNBUFFERED": "1",
+            "PYTHONDONTWRITEBYTECODE": "1"
+        }
+    },
+    "runArgs": [
+        "--shm-size=16gb" // increase or decrease shared memory
+    ],
+    "workspaceMount": "source=${localWorkspaceFolder}/code,target=/app/code,type=bind,consistency=default",
+    "workspaceFolder": "/app/code",
+    "mounts": [
+        "source=${localWorkspaceFolder}/data,target=/app/data,type=bind,consistency=default",
+        "source=${localWorkspaceFolder}/models,target=/app/models,type=bind,consistency=default",
+        "source=${localWorkspaceFolder}/logs,target=/app/logs,type=bind,consistency=default"
+    ],
+    "postCreateCommand": {
+        "install-dsh": "bash -i -c 'pip install -e \"/app/code/deep-semantic-hashing/.\"'"
+    },
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "ms-python.python",
+                "ms-python.vscode-pylance",
+                "shardulm94.trailing-spaces",
+                "ms-python.black-formatter",
+                "savh.json5-kit",
+                "ms-toolsai.jupyter",
+                "ms-toolsai.vscode-jupyter-cell-tags",
+                "ms-toolsai.jupyter-renderers"
+            ],
+            "settings": {
+                "editor.formatOnSave": true,
+                "python.formatting.provider": "black",
+                "python.defaultInterpreterPath": "/opt/conda/bin/python",
+                "python.languageServer": "Pylance",
+                "python.linting.enabled": true,
+                "python.linting.pylintEnabled": true,
+                "python.linting.pycodestyleEnabled": true,
+                "python.formatting.autopep8Path": "/usr/local/bin/autopep8",
+                "python.formatting.blackPath": "/usr/local/bin/black",
+                "python.formatting.yapfPath": "/usr/local/bin/yapf",
+                "python.linting.banditPath": "/usr/local/bin/bandit",
+                "python.linting.flake8Path": "/usr/local/bin/flake8",
+                "python.linting.mypyPath": "/usr/local/bin/mypy",
+                "python.linting.pycodestylePath": "/usr/local/bin/pycodestyle",
+                "python.linting.pydocstylePath": "/usr/local/bin/pydocstyle",
+                "python.linting.pylintPath": "/usr/local/bin/pylint",
+                "continue.telemetryEnabled": false,
+                "black-formatter.args": [
+                    "-l 130"
+                ],
+                "python.analysis.typeCheckingMode": "standard",
+                "python.analysis.diagnosticMode": "workspace",
+                "python.analysis.diagnosticSeverityOverrides": {
+                    "reportUnusedFunction": "information",
+                    "reportUnusedVariable": "warning",
+                    "reportUnusedImport": "warning"
+                },
+                "python.analysis.include": [
+                    "/app/code"
+                ],
+                "python.analysis.typeEvaluation.enableReachabilityAnalysis": true,
+                "python.analysis.typeEvaluation.strictDictionaryInference": true,
+                "python.analysis.typeEvaluation.strictListInference": true,
+                "python.analysis.typeEvaluation.strictSetInference": true,
+                "python.analysis.typeEvaluation.analyzeUnannotatedFunctions": true,
+                "python.analysis.typeEvaluation.deprecateTypingAliases": false,
+                "notebook.lineNumbers": "on",
+                "chat.disableAIFeatures": true
+            }
+        }
+    },
+    "remoteUser": "vscode"
+}

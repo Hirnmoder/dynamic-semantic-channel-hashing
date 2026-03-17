@@ -1,0 +1,17 @@
+[project]
+name = "dsh"
+version = "1.0.0"
+description = "Deep Semantic Hashing (dsh): Dynamic Semantic Channel Hashing"
+readme = "README.md"
+authors = [
+    { name = "Hirnmoder", email = "19573355+Hirnmoder@users.noreply.github.com" }
+]
+requires-python = ">=3.11"
+dependencies = []
+
+[project.scripts]
+dsh = "dsh:main"
+
+[build-system]
+requires = ["uv_build>=0.9.9,<0.10.0"]
+build-backend = "uv_build"

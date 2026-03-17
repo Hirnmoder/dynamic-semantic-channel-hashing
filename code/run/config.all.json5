@@ -1,0 +1,421 @@
+{
+    __type: "CrossModalHashingPipeline",
+    env: {
+        __type: "PipelineEnv",
+        variables: {},
+        log_path: "/app/logs/${EXPERIMENT}",
+        device: "cuda",
+        cudnn_benchmark: "ignore",
+        model_path: "/app/models/${EXPERIMENT}/${EPOCH}-${MODEL}.pth",
+        config_path: "/app/models/${EXPERIMENT}/config.json5",
+        data_path: "/app/data/${DATASET}",
+        misc_path: "/app/data",
+        trace_vector_statistics: false,
+        experiment: "${TIME}-${MODEL}",
+        train_resume_path: "",
+        train_resume_epoch: null,
+        train_measure_time_precisely: false,
+        train_num_workers: 8,
+        train_display_images_every_n_epochs: 0,
+        train_retain_checkpoints: "all",
+        infer_path: "${MODEL_PATH.DIR}/infer/${DATASET}/${EPOCH}.h5",
+        infer_batch_size: 64,
+        infer_num_workers: 8,
+        metric_path: "/app/models/${EXPERIMENT}/eval/${DATASET}/${EPOCH}-${METRIC}-${METRICSET}.json",
+        metric_num_workers: 32,
+        metric_samples_per_worker: 10,
+    },
+    data: {
+        __type: "MIR-FLICKR25K",
+        min_textual_tags: 1,
+        include_samples_without_labels: false,
+        only_samples_with_tag_that_occurs_min_k_times: 20,
+        remove_tags_that_occur_less_than_j_times: false,
+        ttr_split: {
+            __type: "TTS-by-numbers",
+            num_train: 10000,
+            num_test: 2000,
+            num_retrieval: "all-without-test",
+            num_val: 2000,
+            sampling_mode: "random",
+            seed: 42,
+        },
+
+        //__type: "NUS-WIDE",
+        //top_k_labels: 21,
+        //include_samples_without_labels: false,
+        //ttr_split: {
+        //    __type: "TTS-by-numbers",
+        //    num_train: 10500,
+        //    num_test: 2100,
+        //    num_retrieval: "all-without-test",
+        //    num_val: 2100,
+        //    sampling_mode: "random",
+        //    seed: 42,
+        //},
+
+        augmentation: {
+            __type: "Image-Text-Augmentation",
+            image_aug: {
+                __type: "Progressive",
+                configuration: [
+                    {
+                        __type: "Progressive-Step",
+                        start: null,
+                        end: 20,
+                        augmentation_mixtures: [
+                            {
+                                __type: "WeightedAHL",
+                                level: "none",
+                                weight: 1.0,
+                            },
+                        ],
+                    },
+                    {
+                        __type: "Progressive-Step",
+                        start: 20,
+                        end: 40,
+                        augmentation_mixtures: [
+                            {
+                                __type: "WeightedAHL",
+                                level: "none",
+                                weight: 0.25,
+                            },
+                            {
+                                __type: "WeightedAHL",
+                                level: "easy",
+                                weight: 0.75,
+                            },
+                        ],
+                    },
+                    {
+                        __type: "Progressive-Step",
+                        start: 40,
+                        end: 60,
+                        augmentation_mixtures: [
+                            {
+                                __type: "WeightedAHL",
+                                level: "none",
+                                weight: 0.25,
+                            },
+                            {
+                                __type: "WeightedAHL",
+                                level: "easy",
+                                weight: 0.5,
+                            },
+                            {
+                                __type: "WeightedAHL",
+                                level: "medium",
+                                weight: 0.25,
+                            },
+                        ],
+                    },
+                    {
+                        __type: "Progressive-Step",
+                        start: 60,
+                        end: 80,
+                        augmentation_mixtures: [
+                            {
+                                __type: "WeightedAHL",
+                                level: "none",
+                                weight: 0.25,
+                            },
+                            {
+                                __type: "WeightedAHL",
+                                level: "easy",
+                                weight: 0.25,
+                            },
+                            {
+                                __type: "WeightedAHL",
+                                level: "medium",
+                                weight: 0.5,
+                            },
+                        ],
+                    },
+                    {
+                        __type: "Progressive-Step",
+                        start: 80,
+                        end: 100,
+                        augmentation_mixtures: [
+                            {
+                                __type: "WeightedAHL",
+                                level: "none",
+                                weight: 0.25,
+                            },
+                            {
+                                __type: "WeightedAHL",
+                                level: "easy",
+                                weight: 0.25,
+                            },
+                            {
+                                __type: "WeightedAHL",
+                                level: "medium",
+                                weight: 0.25,
+                            },
+                            {
+                                __type: "WeightedAHL",
+                                level: "hard",
+                                weight: 0.25,
+                            },
+                        ],
+                    },
+                    {
+                        __type: "Progressive-Step",
+                        start: 100,
+                        end: 150,
+                        augmentation_mixtures: [
+                            {
+                                __type: "WeightedAHL",
+                                level: "none",
+                                weight: 0.25,
+                            },
+                            {
+                                __type: "WeightedAHL",
+                                level: "medium",
+                                weight: 0.25,
+                            },
+                            {
+                                __type: "WeightedAHL",
+                                level: "hard",
+                                weight: 0.5,
+                            },
+                        ],
+                    },
+                    {
+                        __type: "Progressive-Step",
+                        start: 150,
+                        end: null,
+                        augmentation_mixtures: [
+                            {
+                                __type: "WeightedAHL",
+                                level: "none",
+                                weight: 0.25,
+                            },
+                            {
+                                __type: "WeightedAHL",
+                                level: "hard",
+                                weight: 0.75,
+                            },
+                        ],
+                    },
+                ],
+            },
+            text_aug: "none",
+        },
+    },
+    model: {
+        __type: "CLIPHash",
+        hash_length: 32,
+        sign_function: "zero-is-positive",
+        clip_model: "ViT-H-14-quickgelu",
+        clip_model_pretrained: "dfn5b",
+        hash: {
+            __type: "MLP",
+            dims: [
+                4096,
+                4096,
+                1024,
+                256,
+            ],
+            dropout: 0.1,
+            activation: "tanh",
+            final_activation: "identity",
+        },
+    },
+    _model: {
+        __type: "TDSRDH",
+        hash_length: 32,
+        sign_function: "zero-is-positive",
+        text_embedder: "w2v-gn300-fc",
+        text_sequence_length: 128,
+        vision: {
+            __type: "EncHash",
+            encoder: {
+                __type: "ResNet",
+                depth: 152,
+                pre_trained: true,
+            },
+            hash: {
+                __type: "MLP",
+                dims: [
+                    4096,
+                    4096,
+                ],
+                dropout: 0.1,
+                activation: "tanh",
+                final_activation: "identity",
+            },
+        },
+        text: {
+            __type: "EncHash",
+            encoder: {
+                __type: "Transformer",
+                n_head: 4,
+                n_layer: 1,
+                dim_ff: 2048,
+                dropout: 0.1,
+                activation: "relu",
+                embedding_dim: 512,
+                positional_encoding: "sincos",
+            },
+            hash: {
+                __type: "MLP",
+                dims: [
+                    1024,
+                    8192,
+                ],
+                dropout: 0.1,
+                activation: "tanh",
+                final_activation: "identity",
+            },
+        },
+    },
+    train: {
+        __type: "Train",
+        epochs: 200,
+        batch_size: 128,
+        drop_last: true,
+        optimizer: {
+            __type: "Adam",
+            learning_rate: 1e-05,
+            weight_decay: 0.0,
+            eps: 1e-08,
+            betas: [
+                0.9,
+                0.999,
+            ],
+        },
+
+        __train_mode: "img-text-per-epoch",
+        __loss: {
+            __type: "TDSRDH-Loss",
+            alpha: 0.05,
+            beta: 1.0,
+            epsilon: 0.3,
+            normalize_by_batch_size: true,
+            pairwise_loss: "as-paper",
+            quantization_loss: "average-activation-to-hashcode",
+            triplet_loss: "as-paper",
+        },
+
+	    _train_mode: "simultaneous",
+        _loss: {
+            __type: "Our-Loss",
+            semanticchannel: {
+                __type: "SCH-Loss",
+                tau: 3,
+                alpha: 1.0,
+                beta: 1.0,
+                lneg_lambda_l: 0.5,
+                use_k_approximation: false,
+            },
+            normalize_by_batch_size: true,
+            q_weight: null,
+            use_frobenius: false,
+        },
+
+        train_mode: "simultaneous",
+        loss: {
+            __type: "Our-Loss",
+            semanticchannel: {
+                __type: "DSCH-Loss",
+                tau: 1.0,
+                alpha: 1.0,
+                beta: 1.0,
+                lambda_neg: 0.5,
+                gamma_w: 8.0,
+                gamma_l: 1.0,
+                anchor: 0.0,
+            },
+            normalize_by_batch_size: true,
+            q_weight: 0.01,
+            use_frobenius: false,
+        },
+
+        scheduler: {
+            __type: "SequenceScheduler",
+            schedulers: [
+                [
+                    0,
+                    {
+                        __type: "ConstantScheduler",
+                        factor: 1.0,
+                    },
+                ],
+                [
+                    75,
+                    {
+                        __type: "CosineScheduler",
+                        start_factor: 1.0,
+                        end_factor: 0.1,
+                    },
+                ],
+                [
+                    150,
+                    {
+                        __type: "ConstantScheduler",
+                        factor: 0.1,
+                    },
+                ],
+            ],
+        },
+        save_frequency: 5,
+        early_stopping: {
+            __type: "EarlyStopping",
+            infer_frequency: 5,
+            patience_epochs: 200,
+            stopping_criterion: {
+                __type: "Criterions+All",
+                criterions: [
+                    {
+                        __type: "MetricCriterion",
+                        type: "HammingMetric",
+                        set: "val",
+                        metric: "hamming_ranking.mean_average_precision_img2text",
+                        better: "+",
+                    },
+                    {
+                        __type: "MetricCriterion",
+                        type: "HammingMetric",
+                        set: "val",
+                        metric: "hamming_ranking.mean_average_precision_text2img",
+                        better: "+",
+                    },
+                    {
+                        __type: "MetricCriterion",
+                        type: "HammingMetric",
+                        set: "val",
+                        metric: "hash_lookup.roc_auc_img2text",
+                        better: "+",
+                    },
+                    {
+                        __type: "MetricCriterion",
+                        type: "HammingMetric",
+                        set: "val",
+                        metric: "hash_lookup.roc_auc_text2img",
+                        better: "+",
+                    },
+                ],
+            },
+        },
+    },
+    metric: {
+        __type: "Metrics",
+        metrics: [
+            {
+                __type: "HammingMetric",
+                subselect_top_k_labels: null,
+                include_samples_without_labels: false,
+                average_precision_mode: "tie-aware",
+                eval_set: "val",
+            },
+            {
+                __type: "HammingMetric",
+               subselect_top_k_labels: null,
+               include_samples_without_labels: false,
+               average_precision_mode: "tie-aware",
+               eval_set: "test",
+            },
+        ],
+    },
+}
